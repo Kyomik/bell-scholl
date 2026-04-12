@@ -1,0 +1,7 @@
+@import 'bootstrap/dist/css/bootstrap.min.css';
+@import '@fortawesome/fontawesome-free/css/all.min.css';
+@import'./contact-spinner.css';
+@import './alertProfesional.css';
+@import './toastProfesional.css';
+@import './index.css';
+@import './upload-audio.css';
