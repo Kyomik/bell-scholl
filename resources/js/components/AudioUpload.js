@@ -1,6 +1,66 @@
 import { Notify } from "../helpers/helper-notif";
 import { SubmitButton } from "./SubmitButton";
 
+function toWav(audioBuffer) {
+    const numChannels = audioBuffer.numberOfChannels;
+    const sampleRate = audioBuffer.sampleRate;
+    const format = 1; // PCM
+    const bitDepth = 16;
+
+    let samples = audioBuffer.getChannelData(0);
+    if (numChannels > 1) {
+      // Jika stereo, lakukan interleaving
+      const left = samples;
+      const right = audioBuffer.getChannelData(1);
+      const interleaved = new Float32Array(left.length * 2);
+      for (let i = 0; i < left.length; i++) {
+        interleaved[i * 2] = left[i];
+        interleaved[i * 2 + 1] = right[i];
+      }
+      samples = interleaved;
+    }
+
+    // Konversi Float32 (-1..1) ke Int16
+    const int16Samples = new Int16Array(samples.length);
+    for (let i = 0; i < samples.length; i++) {
+      const s = Math.max(-1, Math.min(1, samples[i]));
+      int16Samples[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+    }
+
+    // Buat buffer WAV
+    const dataSize = int16Samples.length * 2;
+    const buffer = new ArrayBuffer(44 + dataSize);
+    const view = new DataView(buffer);
+
+    // RIFF chunk
+    writeString(view, 0, 'RIFF');
+    view.setUint32(4, 36 + dataSize, true);
+    writeString(view, 8, 'WAVE');
+    writeString(view, 12, 'fmt ');
+    view.setUint32(16, 16, true); // ukuran subchunk
+    view.setUint16(20, format, true);
+    view.setUint16(22, numChannels, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * numChannels * (bitDepth / 8), true); // byte rate
+    view.setUint16(32, numChannels * (bitDepth / 8), true); // block align
+    view.setUint16(34, bitDepth, true);
+    writeString(view, 36, 'data');
+    view.setUint32(40, dataSize, true);
+
+    // Tulis sample data
+    for (let i = 0; i < int16Samples.length; i++) {
+      view.setInt16(44 + i * 2, int16Samples[i], true);
+    }
+
+    return buffer;
+  }
+
+  function writeString(view, offset, str) {
+    for (let i = 0; i < str.length; i++) {
+      view.setUint8(offset + i, str.charCodeAt(i));
+    }
+  }
+
 export class AudioUpload {
   constructor(parentComponent, wsManager, onUploadComplete = null) {
     this.component = parentComponent;

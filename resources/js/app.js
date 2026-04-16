@@ -65,7 +65,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             cardController.formAlarm.submitButton.setLoading(false)
             break;
         case 'destroy-sesi':
-            cardController.list.updateUI(cardController.list.item.component.dataset.index, 'delete')
+            if (cardController.list.pendingDeleteTime) {
+              cardController.list.updateUI(cardController.list.pendingDeleteTime, 'delete');
+              cardController.list.pendingDeleteTime = null;
+            }
             break;
         case 'destroy-all-sesi':
             cardController.list.updateUI()

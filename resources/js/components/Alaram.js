@@ -5,7 +5,7 @@ export class Alaram{
     constructor(parent, data){
         const element = document.createElement('div');
         element.className = 'alarm-item';
-        element.dataset.index = data.time
+        element.dataset.time = data.time
         this.parent = parent
         this.component = this.#render(element, data)
         
@@ -48,7 +48,9 @@ export class Alaram{
         e.stopPropagation();
 
         try {
-            const time = this.component.dataset.index
+            const time = this.component.dataset.time
+            
+            this.parent.pendingDeleteTime = time;
             
             if (e.target.closest('.action-btn.delete')) {
                 await this.deleteSubmit.submit(async () => {

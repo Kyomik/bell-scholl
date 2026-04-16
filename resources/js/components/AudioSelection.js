@@ -40,6 +40,7 @@ export class AudioSelection {
     this.#setupEventListener();
 
     wsManager.on('get-metadata-audio', (result) => {
+      wsManager.send({event: 'event:ack', data: {eventId: result.meta.eventId}})
       result.data.audios.forEach(d => this.#updateUI(d));
     });
   }

@@ -255,6 +255,7 @@ export class WebSocketManager {
     }
 
     send(message) {
+        console.log(message)
         const receiver = localStorage.getItem('selectedContact');
 
         if (!receiver) {
@@ -262,14 +263,21 @@ export class WebSocketManager {
             this.emit('WARNING', { message: 'WebSocket connection error' });
             return;
         }
-        message.meta = {
-            receiver: receiver
+
+        if (message.event !== 'event:ack') {
+            const receiver = localStorage.getItem('selectedContact');
+            if (!receiver) {
+                Notify.warning('No contact selected, message not sent');
+                this.emit('WARNING', { message: 'No contact selected' });
+                return;
+            }
+            message.meta = { receiver: receiver };
         }
 
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             this.ws.send(JSON.stringify(message));
         } else {
-            Notify.warning(`WebSocket not connected, message not sent: ${message.event}`)
+            Notify.warning(`WebSocket not connected, message not sent: ${message.event}`);
             this.emit('WARNING', { message: 'WebSocket connection error' });
         }
     }

@@ -7,8 +7,11 @@ export class AlaramList{
         this.parent = parent
         this.component = parent.querySelector(`#${elementId}`);
         this.data = this.getDevalutValue()
+        this.pendingDeleteTime = null;
+        
         this.#init()
     }
+    
 
     #init(){
         this.render(this.data)
@@ -45,7 +48,7 @@ export class AlaramList{
                 break;
             case 'delete':
                 console.log(data)
-                this.data = this.data.filter(item => item.id !== data.id);
+                this.data = this.data.filter(item => item.time !== data);
                 message = 'Alarm berhasil dihapus';
                 break;
                 
