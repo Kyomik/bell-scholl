@@ -1,59 +1,48 @@
 import { Notify } from "../helpers/helper-notif";
 import { SubmitButton } from "./SubmitButton";
 
+// Perbaiki fungsi toWav agar menghasilkan header WAV yang benar
 function toWav(audioBuffer) {
-    const numChannels = audioBuffer.numberOfChannels;
-    const sampleRate = audioBuffer.sampleRate;
-    const format = 1; // PCM
-    const bitDepth = 16;
+  const numChannels = 1; // paksa mono karena targetChannels=1
+  const sampleRate = audioBuffer.sampleRate;
+  const bitDepth = 16;
+  const format = 1; // PCM
 
-    let samples = audioBuffer.getChannelData(0);
-    if (numChannels > 1) {
-      // Jika stereo, lakukan interleaving
-      const left = samples;
-      const right = audioBuffer.getChannelData(1);
-      const interleaved = new Float32Array(left.length * 2);
-      for (let i = 0; i < left.length; i++) {
-        interleaved[i * 2] = left[i];
-        interleaved[i * 2 + 1] = right[i];
-      }
-      samples = interleaved;
-    }
-
-    // Konversi Float32 (-1..1) ke Int16
-    const int16Samples = new Int16Array(samples.length);
-    for (let i = 0; i < samples.length; i++) {
-      const s = Math.max(-1, Math.min(1, samples[i]));
-      int16Samples[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
-    }
-
-    // Buat buffer WAV
-    const dataSize = int16Samples.length * 2;
-    const buffer = new ArrayBuffer(44 + dataSize);
-    const view = new DataView(buffer);
-
-    // RIFF chunk
-    writeString(view, 0, 'RIFF');
-    view.setUint32(4, 36 + dataSize, true);
-    writeString(view, 8, 'WAVE');
-    writeString(view, 12, 'fmt ');
-    view.setUint32(16, 16, true); // ukuran subchunk
-    view.setUint16(20, format, true);
-    view.setUint16(22, numChannels, true);
-    view.setUint32(24, sampleRate, true);
-    view.setUint32(28, sampleRate * numChannels * (bitDepth / 8), true); // byte rate
-    view.setUint16(32, numChannels * (bitDepth / 8), true); // block align
-    view.setUint16(34, bitDepth, true);
-    writeString(view, 36, 'data');
-    view.setUint32(40, dataSize, true);
-
-    // Tulis sample data
-    for (let i = 0; i < int16Samples.length; i++) {
-      view.setInt16(44 + i * 2, int16Samples[i], true);
-    }
-
-    return buffer;
+  // Ambil channel 0 (mono)
+  const samples = audioBuffer.getChannelData(0);
+  const int16Samples = new Int16Array(samples.length);
+  for (let i = 0; i < samples.length; i++) {
+    let s = samples[i];
+    s = Math.max(-1, Math.min(1, s)); // clamp
+    int16Samples[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
   }
+
+  const dataSize = int16Samples.length * 2;
+  const buffer = new ArrayBuffer(44 + dataSize);
+  const view = new DataView(buffer);
+
+  // RIFF chunk
+  writeString(view, 0, 'RIFF');
+  view.setUint32(4, 36 + dataSize, true); // file size - 8
+  writeString(view, 8, 'WAVE');
+  writeString(view, 12, 'fmt ');
+  view.setUint32(16, 16, true); // chunk size
+  view.setUint16(20, format, true);
+  view.setUint16(22, numChannels, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * numChannels * (bitDepth / 8), true); // byte rate
+  view.setUint16(32, numChannels * (bitDepth / 8), true); // block align
+  view.setUint16(34, bitDepth, true);
+  writeString(view, 36, 'data');
+  view.setUint32(40, dataSize, true);
+
+  // Write sample data
+  for (let i = 0; i < int16Samples.length; i++) {
+    view.setInt16(44 + i * 2, int16Samples[i], true);
+  }
+
+  return buffer;
+}
 
   function writeString(view, offset, str) {
     for (let i = 0; i < str.length; i++) {
@@ -163,16 +152,18 @@ export class AudioUpload {
       const audioContext = new (window.AudioContext || window.webkitAudioContext)();
       let audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
       
-      // Resample ke target sample rate & mono jika perlu
+      // Resample ke target sample rate & mono
       audioBuffer = await this.#resampleAudioBuffer(audioBuffer, this.targetSampleRate, this.targetChannels);
       
-      // Encode ke WAV
-      const wavArrayBuffer = toWav(audioBuffer);
+      // Pastikan sample rate sudah sesuai target (misal 16000)
+      if (audioBuffer.sampleRate !== this.targetSampleRate) {
+        console.warn(`Sample rate mismatch: ${audioBuffer.sampleRate} vs ${this.targetSampleRate}`);
+        // Jika tidak sesuai, ulang resampling dengan cara lain (opsional)
+      }
       
-      // Tutup context
+      const wavArrayBuffer = toWav(audioBuffer);
       await audioContext.close();
       
-      // Buat file WAV baru
       const baseName = file.name.replace(/\.[^/.]+$/, '');
       const wavFile = new File([wavArrayBuffer], `${baseName}.wav`, { type: 'audio/wav' });
       
@@ -240,69 +231,22 @@ export class AudioUpload {
 
   async #startUpload() {
     if (!this.currentFile) return;
+
+    // Tampilkan loading pada tombol
     if (this.uploadBtn) this.uploadBtn.setLoading(true);
     this.showModal();
 
     const file = this.currentFile;
-    const eventId = 'upload_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
-    this.currentEventId = eventId;
 
-    // Kirim event start sesuai protokol ESP32
+    // Kirim event START
     this.wsManager.send({
-      event: 'lets-fucking-go',
+      event: 'upload-audio-start',
       data: {
         filename: file.name,
         size: file.size,
         type: file.type,
-        totalChunk: Math.ceil(file.size / this.CHUNK_SIZE),
-      },
-      meta: { eventId }
-    });
-
-    // Kirim chunk
-    await this.#sendChunks(file, eventId);
-  }
-
-  #sendChunks(file, eventId) {
-    return new Promise((resolve, reject) => {
-      let offset = 0;
-      let chunkIndex = 0;
-      const sendNextChunk = () => {
-        const slice = file.slice(offset, offset + this.CHUNK_SIZE);
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const buffer = e.target.result;
-          if (this.wsManager.ws && this.wsManager.ws.readyState === WebSocket.OPEN) {
-            this.wsManager.ws.send(buffer);
-          } else {
-            reject(new Error('Koneksi WebSocket terputus'));
-            this.#cancelUpload();
-            return;
-          }
-          chunkIndex++;
-          offset += this.CHUNK_SIZE;
-          if (offset < file.size) {
-            setTimeout(sendNextChunk, 10);
-          } else {
-            // Kirim event end sesuai protokol
-            this.wsManager.send({
-              event: 'thats-it-b1tch',
-              meta: { eventId }
-            });
-            this.#cancelUpload();
-            Notify.info('File terkirim, menunggu konfirmasi server...');
-            if (this.onUploadComplete) this.onUploadComplete();
-            resolve();
-          }
-        };
-        reader.onerror = () => {
-          Notify.error('Gagal membaca file chunk');
-          this.#cancelUpload();
-          reject(new Error('File read error'));
-        };
-        reader.readAsArrayBuffer(slice);
-      };
-      sendNextChunk();
+        totalChunks: Math.ceil(file.size / this.CHUNK_SIZE),
+      }
     });
   }
 
