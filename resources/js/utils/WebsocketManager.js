@@ -256,13 +256,6 @@ export class WebSocketManager {
 
     send(message) {
         console.log(message)
-        const receiver = localStorage.getItem('selectedContact');
-
-        if (!receiver) {
-            Notify.warning('No contact selected, message not sent');
-            this.emit('WARNING', { message: 'WebSocket connection error' });
-            return;
-        }
 
         if (message.event !== 'event:ack') {
             const receiver = localStorage.getItem('selectedContact');

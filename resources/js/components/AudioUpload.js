@@ -240,22 +240,69 @@ export class AudioUpload {
 
   async #startUpload() {
     if (!this.currentFile) return;
-
-    // Tampilkan loading pada tombol
     if (this.uploadBtn) this.uploadBtn.setLoading(true);
     this.showModal();
 
     const file = this.currentFile;
+    const eventId = 'upload_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+    this.currentEventId = eventId;
 
-    // Kirim event START
+    // Kirim event start sesuai protokol ESP32
     this.wsManager.send({
-      event: 'upload-audio-start',
+      event: 'lets-fucking-go',
       data: {
         filename: file.name,
         size: file.size,
         type: file.type,
-        totalChunks: Math.ceil(file.size / this.CHUNK_SIZE),
-      }
+        totalChunk: Math.ceil(file.size / this.CHUNK_SIZE),
+      },
+      meta: { eventId }
+    });
+
+    // Kirim chunk
+    await this.#sendChunks(file, eventId);
+  }
+
+  #sendChunks(file, eventId) {
+    return new Promise((resolve, reject) => {
+      let offset = 0;
+      let chunkIndex = 0;
+      const sendNextChunk = () => {
+        const slice = file.slice(offset, offset + this.CHUNK_SIZE);
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const buffer = e.target.result;
+          if (this.wsManager.ws && this.wsManager.ws.readyState === WebSocket.OPEN) {
+            this.wsManager.ws.send(buffer);
+          } else {
+            reject(new Error('Koneksi WebSocket terputus'));
+            this.#cancelUpload();
+            return;
+          }
+          chunkIndex++;
+          offset += this.CHUNK_SIZE;
+          if (offset < file.size) {
+            setTimeout(sendNextChunk, 10);
+          } else {
+            // Kirim event end sesuai protokol
+            this.wsManager.send({
+              event: 'thats-it-b1tch',
+              meta: { eventId }
+            });
+            this.#cancelUpload();
+            Notify.info('File terkirim, menunggu konfirmasi server...');
+            if (this.onUploadComplete) this.onUploadComplete();
+            resolve();
+          }
+        };
+        reader.onerror = () => {
+          Notify.error('Gagal membaca file chunk');
+          this.#cancelUpload();
+          reject(new Error('File read error'));
+        };
+        reader.readAsArrayBuffer(slice);
+      };
+      sendNextChunk();
     });
   }
 
