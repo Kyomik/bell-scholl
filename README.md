@@ -33,7 +33,7 @@ Melalui webapp yang disediakan, pengguna (guru atau admin) dapat mengelola jadwa
 3. Klik ikon chat (kiri bawah) untuk memilih perangkat.
 4. Atur jadwal alarm, pilih audio, dan simpan.
 
-📖 Selengkapnya di [Panduan Pengguna](./HANDBOOK_PROJECT_BELL.md)
+📖 Selengkapnya di [Panduan Pengguna](./guides/user-guide.md)
 
 ## 🏗️ Teknologi
 
