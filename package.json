@@ -13,6 +13,24 @@
     "dependencies": {
         "@fortawesome/fontawesome-free": "^7.2.0",
         "@popperjs/core": "^2.11.8",
+        "audiobuffer-to-wav": "^1.0.0",
         "bootstrap": "^5.3.8"
-    }
+    },
+    "name": "bell-scholl",
+    "version": "1.0.0",
+    "description": "<p align=\"center\"><a href=\"https://laravel.com\" target=\"_blank\"><img src=\"https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg\" width=\"400\" alt=\"Laravel Logo\"></a></p>",
+    "main": "vite.config.js",
+    "directories": {
+        "test": "tests"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Kyomik/bell-scholl.git"
+    },
+    "author": "",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/Kyomik/bell-scholl/issues"
+    },
+    "homepage": "https://github.com/Kyomik/bell-scholl#readme"
 }

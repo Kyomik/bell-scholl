@@ -1,54 +1,6 @@
 import { Notify } from "../helpers/helper-notif";
 import { SubmitButton } from "./SubmitButton";
-
-// Perbaiki fungsi toWav agar menghasilkan header WAV yang benar
-function toWav(audioBuffer) {
-  const numChannels = 1; // paksa mono karena targetChannels=1
-  const sampleRate = audioBuffer.sampleRate;
-  const bitDepth = 16;
-  const format = 1; // PCM
-
-  // Ambil channel 0 (mono)
-  const samples = audioBuffer.getChannelData(0);
-  const int16Samples = new Int16Array(samples.length);
-  for (let i = 0; i < samples.length; i++) {
-    let s = samples[i];
-    s = Math.max(-1, Math.min(1, s)); // clamp
-    int16Samples[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
-  }
-
-  const dataSize = int16Samples.length * 2;
-  const buffer = new ArrayBuffer(44 + dataSize);
-  const view = new DataView(buffer);
-
-  // RIFF chunk
-  writeString(view, 0, 'RIFF');
-  view.setUint32(4, 36 + dataSize, true); // file size - 8
-  writeString(view, 8, 'WAVE');
-  writeString(view, 12, 'fmt ');
-  view.setUint32(16, 16, true); // chunk size
-  view.setUint16(20, format, true);
-  view.setUint16(22, numChannels, true);
-  view.setUint32(24, sampleRate, true);
-  view.setUint32(28, sampleRate * numChannels * (bitDepth / 8), true); // byte rate
-  view.setUint16(32, numChannels * (bitDepth / 8), true); // block align
-  view.setUint16(34, bitDepth, true);
-  writeString(view, 36, 'data');
-  view.setUint32(40, dataSize, true);
-
-  // Write sample data
-  for (let i = 0; i < int16Samples.length; i++) {
-    view.setInt16(44 + i * 2, int16Samples[i], true);
-  }
-
-  return buffer;
-}
-
-  function writeString(view, offset, str) {
-    for (let i = 0; i < str.length; i++) {
-      view.setUint8(offset + i, str.charCodeAt(i));
-    }
-  }
+import toWav from 'audiobuffer-to-wav'; // tambahkan import
 
 export class AudioUpload {
   constructor(parentComponent, wsManager, onUploadComplete = null) {
@@ -186,30 +138,15 @@ export class AudioUpload {
 
   // Resample menggunakan OfflineAudioContext
   #resampleAudioBuffer(audioBuffer, targetSampleRate, targetChannels) {
-    return new Promise((resolve) => {
-      const sourceSampleRate = audioBuffer.sampleRate;
-      const sourceChannels = audioBuffer.numberOfChannels;
+    return new Promise((resolve, reject) => {
       const duration = audioBuffer.duration;
       const sampleCount = Math.ceil(duration * targetSampleRate);
-      
-      const offlineCtx = new OfflineAudioContext(
-        targetChannels,
-        sampleCount,
-        targetSampleRate
-      );
-      
+      const offlineCtx = new OfflineAudioContext(targetChannels, sampleCount, targetSampleRate);
       const source = offlineCtx.createBufferSource();
       source.buffer = audioBuffer;
       source.connect(offlineCtx.destination);
       source.start();
-      
-      offlineCtx.startRendering().then((renderedBuffer) => {
-        resolve(renderedBuffer);
-      }).catch((err) => {
-        console.error('Resampling failed', err);
-        // Fallback: kembalikan buffer asli (walaupun sample rate berbeda)
-        resolve(audioBuffer);
-      });
+      offlineCtx.startRendering().then(resolve).catch(reject);
     });
   }
 
