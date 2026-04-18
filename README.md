@@ -39,9 +39,10 @@ Melalui webapp yang disediakan, pengguna (guru atau admin) dapat mengelola jadwa
 
 | Teknologi | Kegunaan |
 |-----------|----------|
-| Web App (HTML/CSS/JS) | Antarmuka pengguna |
+| Web App (HTML/CSS/Boostrap 5/Vanila JS(ES6Module)) | Antarmuka pengguna |
 | WebSocket | Komunikasi real-time dengan perangkat |
-| Firebase / Backend | Penyimpanan data jadwal & audio |
+| Mysql Db | Penyimpanan alarm |
+| Laravel Backend | Logic & Rest API |
 | ESP32 | Perangkat bell (hardware) |
 | SD Card | Penyimpanan file audio MP3 |
 
