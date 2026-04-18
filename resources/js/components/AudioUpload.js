@@ -162,6 +162,11 @@ export class AudioUpload {
       }
       
       const wavArrayBuffer = toWav(audioBuffer);
+      const view = new DataView(wavArrayBuffer);
+      const riff = String.fromCharCode(...new Uint8Array(wavArrayBuffer, 0, 4));
+      if (riff !== 'RIFF') {
+        throw new Error('Hasil konversi bukan WAV valid');
+      }
       await audioContext.close();
       
       const baseName = file.name.replace(/\.[^/.]+$/, '');
