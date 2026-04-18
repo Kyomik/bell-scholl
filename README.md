@@ -1,66 +1,55 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
-
 <p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+  <img src="https://img.shields.io/badge/version-1.0.0-blue" alt="Version" />
+  <img src="https://img.shields.io/badge/platform-Web%20App-blue" alt="Platform" />
+  <img src="https://img.shields.io/badge/license-MIT-green" alt="License" />
 </p>
 
-## About Laravel
+# 🔔 Bell School - Sistem Bel Sekolah Terpusat
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 📖 Deskripsi
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Bell School adalah sistem bel sekolah berbasis perangkat (hardware) dan webapp sebagai antarmuka pengguna. Sistem ini dirancang untuk membantu pengelolaan jadwal alarm secara dinamis dan terpusat.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Melalui webapp yang disediakan, pengguna (guru atau admin) dapat mengelola jadwal alarm, seperti menentukan waktu, suara alarm, serta pengulangan dalam rentang mingguan.
 
-## Learning Laravel
+## ✨ Fitur Utama
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+- Manajemen jadwal alarm (tambah, edit, hapus, hapus semua)
+- Upload audio kustom (format MP3)
+- Pemilihan perangkat tujuan untuk perubahan
+- Sinkronisasi data antara server dan perangkat
+- Tampilan responsif, dapat diakses dari berbagai perangkat
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+## 📚 Dokumentasi
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+| Panduan | Target |
+|---------|--------|
+| [👤 Panduan Pengguna](./HANDBOOK_PROJECT_BELL.md) | Guru / Admin (cara login, menambah alarm, upload audio, dll) |
 
-## Laravel Sponsors
+## 🚀 Untuk Pengguna
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+1. Buka webapp Bell School melalui browser.
+2. Login dengan username & password dari teknisi.
+3. Klik ikon chat (kiri bawah) untuk memilih perangkat.
+4. Atur jadwal alarm, pilih audio, dan simpan.
 
-### Premium Partners
+📖 Selengkapnya di [Panduan Pengguna](./HANDBOOK_PROJECT_BELL.md)
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+## 🏗️ Teknologi
 
-## Contributing
+| Teknologi | Kegunaan |
+|-----------|----------|
+| Web App (HTML/CSS/JS) | Antarmuka pengguna |
+| WebSocket | Komunikasi real-time dengan perangkat |
+| Firebase / Backend | Penyimpanan data jadwal & audio |
+| ESP32 | Perangkat bell (hardware) |
+| SD Card | Penyimpanan file audio MP3 |
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## 👥 Maintainer
 
-## Code of Conduct
+- Ilham – [@kyoomik](https://instagram.com/kyoomik)
+- [Techno Kreatif Solusindo](https://www.instagram.com/technokreatifsolusindo)
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## 📄 Lisensi
 
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+MIT License
