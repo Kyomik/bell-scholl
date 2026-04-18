@@ -39,8 +39,6 @@ Melalui webapp yang disediakan, pengguna (guru atau admin) dapat mengelola jadwa
 
 | Teknologi | Kegunaan |
 |-----------|----------|
-| Teknologi | Kegunaan |
-|-----------|----------|
 | **Vite** | Build tool & development server |
 | **Vanilla JS (ES6 Modules)** | Frontend murni tanpa framework |
 | **WebSocket** | Komunikasi real-time dengan perangkat |
