@@ -1,6 +1,5 @@
 import { Notify } from "../helpers/helper-notif";
 import { SubmitButton } from "./SubmitButton";
-import toWav from 'audiobuffer-to-wav'; // tambahkan import
 
 export class AudioUpload {
   constructor(parentComponent, wsManager, onUploadComplete = null) {
@@ -104,26 +103,16 @@ export class AudioUpload {
       const audioContext = new (window.AudioContext || window.webkitAudioContext)();
       let audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
       
-      // Resample ke target sample rate & mono
-      audioBuffer = await this.#resampleAudioBuffer(audioBuffer, this.targetSampleRate, this.targetChannels);
-      
-      // Pastikan sample rate sudah sesuai target (misal 16000)
-      if (audioBuffer.sampleRate !== this.targetSampleRate) {
-        console.warn(`Sample rate mismatch: ${audioBuffer.sampleRate} vs ${this.targetSampleRate}`);
-        // Jika tidak sesuai, ulang resampling dengan cara lain (opsional)
-      }
-      
-      const wavArrayBuffer = toWav(audioBuffer);
-      const view = new DataView(wavArrayBuffer);
-      const riff = String.fromCharCode(...new Uint8Array(wavArrayBuffer, 0, 4));
-      if (riff !== 'RIFF') {
-        throw new Error('Hasil konversi bukan WAV valid');
-      }
+      // Resample ke mono 16kHz
+      audioBuffer = await this.#resampleAudioBuffer(audioBuffer, this.targetSampleRate, 1);
       await audioContext.close();
-      
+
+      // Konversi manual ke PCM 16-bit integer — BUKAN pakai audiobuffer-to-wav
+      const pcm16 = this.#audioBufferToPCM16(audioBuffer);
+      const wavBuffer = this.#encodePCM16toWAV(pcm16, this.targetSampleRate, 1);
+
       const baseName = file.name.replace(/\.[^/.]+$/, '');
-      const wavFile = new File([wavArrayBuffer], `${baseName}.wav`, { type: 'audio/wav' });
-      
+      const wavFile = new File([wavBuffer], `${baseName}.wav`, { type: 'audio/wav' });
       this.currentFile = wavFile;
       this.fileNameSpan.textContent = wavFile.name;
       this.uploadButtonElement.disabled = false;
@@ -134,6 +123,49 @@ export class AudioUpload {
       Notify.error('Gagal mengonversi audio. Pastikan file tidak rusak.');
       this.#cancelUpload();
     }
+  }
+
+  #audioBufferToPCM16(audioBuffer) {
+    const float32 = audioBuffer.getChannelData(0); // mono
+    const int16 = new Int16Array(float32.length);
+    for (let i = 0; i < float32.length; i++) {
+      const s = Math.max(-1, Math.min(1, float32[i]));
+      int16[i] = s < 0 ? s * 32768 : s * 32767;
+    }
+    return int16;
+  }
+
+  #encodePCM16toWAV(pcm16, sampleRate, channels) {
+    const byteRate    = sampleRate * channels * 2;
+    const blockAlign  = channels * 2;
+    const dataSize    = pcm16.length * 2;
+    const buffer      = new ArrayBuffer(44 + dataSize);
+    const view        = new DataView(buffer);
+
+    const write = (offset, str) => {
+      for (let i = 0; i < str.length; i++)
+        view.setUint8(offset + i, str.charCodeAt(i));
+    };
+
+    write(0,  'RIFF');
+    view.setUint32(4,  36 + dataSize, true);
+    write(8,  'WAVE');
+    write(12, 'fmt ');
+    view.setUint32(16, 16, true);         // chunk size
+    view.setUint16(20, 1,  true);         // PCM = 1
+    view.setUint16(22, channels, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, byteRate, true);
+    view.setUint16(32, blockAlign, true);
+    view.setUint16(34, 16, true);         // 16-bit
+    write(36, 'data');
+    view.setUint32(40, dataSize, true);
+
+    // Tulis sampel
+    const dataView = new Int16Array(buffer, 44);
+    dataView.set(pcm16);
+
+    return buffer;
   }
 
   // Resample menggunakan OfflineAudioContext
