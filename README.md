@@ -24,7 +24,7 @@ Melalui webapp yang disediakan, pengguna (guru atau admin) dapat mengelola jadwa
 
 | Panduan | Target |
 |---------|--------|
-| [👤 Panduan Pengguna](./HANDBOOK_PROJECT_BELL.md) | Guru / Admin (cara login, menambah alarm, upload audio, dll) |
+| [👤 Panduan Pengguna](./user-guide.md) | Guru / Admin (cara login, menambah alarm, upload audio, dll) |
 
 ## 🚀 Untuk Pengguna
 
