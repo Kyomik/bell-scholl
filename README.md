@@ -24,7 +24,7 @@ Melalui webapp yang disediakan, pengguna (guru atau admin) dapat mengelola jadwa
 
 | Panduan | Target |
 |---------|--------|
-| [👤 Panduan Pengguna](./user-guide.md) | Guru / Admin (cara login, menambah alarm, upload audio, dll) |
+| [👤 Panduan Pengguna](./guides/user-guide.md) | Guru / Admin (cara login, menambah alarm, upload audio, dll) |
 
 ## 🚀 Untuk Pengguna
 
